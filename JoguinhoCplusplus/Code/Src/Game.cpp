@@ -5,7 +5,7 @@
 
 #include <time.h>
 
-SDL_Renderer* Game::renderer_ = nullptr;
+SDL_Renderer *Game::renderer_ = nullptr;
 SDL_Event Game::event_;
 
 void Game::run() {
@@ -28,8 +28,8 @@ void Game::run() {
     this->clean();
 }
 
-void Game::init(const std::string& title, const int& xpos, const int& ypos,
-                const int& width, const int& height, const bool& fullscreen) {
+void Game::init(const std::string &title, const int &xpos, const int &ypos,
+                const int &width, const int &height, const bool &fullscreen) {
     if (SDL_Init(SDL_INIT_EVERYTHING) == 0) {
         std::cout << "SDL_INIT_EVERYTHING foi bem sucedido\n";
         this->window_ = SDL_CreateWindow(title.c_str(), xpos, ypos, width,
@@ -51,65 +51,76 @@ void Game::init(const std::string& title, const int& xpos, const int& ypos,
     }
 
     this->manager_ = new GameManager();
+    auto player_info = this->game_properties_["player_1_info"];
+    // auto map_info = this->game_properties_["map_info"];
 
-    this->map_ = new Map(Game::renderer_, this->manager_);
-    this->map_->loadMap("Assets/lvl_0.map", 16, 16);
-	this->map_->pushDirtIntoColliders(&this->colliders_);
+    // this->game_objects_.map_ = new Map(Game::renderer_, this->manager_);
+    // this->game_objects_.map_->loadMap(map_info["lvl_0"]["source"],
+    //                     map_info["lvl_0"]["sizes"]["x"],
+    //                     map_info["lvl_0"]["sizes"]["y"]);
+    // this->game_objects_.map_->pushDirtIntoColliders(&this->colliders_);
 
-    this->player_ = this->manager_->addEntity();
-    this->player_->addGroup(kplayer_group);
-    this->player_->addComponent<Transform>();
-    this->player_->getComponent<Transform>()->setScale(2);
-    this->player_->addComponent<Sprite>(Game::renderer_, "Assets/cool_player.png",
-                                        8, 150, true);
-    this->player_->addComponent<Input>(&Game::event_);
-	this->player_->addComponent<PlayerBorder>(Game::renderer_,
-                                              "Assets/borda_unica_cool_player.png",
-											  this->player_->getComponent<Transform>()->getScale());
-    this->player_->addComponent<BoxCollider>("player");
-	this->player_->getComponent<BoxCollider>()
-        ->setColliderBasedOnBorder(this->player_->getComponent<PlayerBorder>())
-                                    .getPushedOn(&this->colliders_);
+    this->game_objects_.player_ = this->manager_->addEntity();
+    this->game_objects_.player_->addGroup(kplayer_group);
+    this->game_objects_.player_->addComponent<Transform>().setScale(player_info["in_game_scale"]);
+    this->game_objects_.player_->addComponent<Sprite>(Game::renderer_,
+                                                      player_info["sprite_sheet_info"]["source"],
+                                                      player_info["sprite_sheet_info"]["idle"]["frames"],
+                                                      player_info["sprite_sheet_info"]["idle"]["speed"],
+                                                      player_info["sprite_sheet_info"]["animated"]);
+    this->game_objects_.player_->addComponent<Input>(&Game::event_);
+    this->game_objects_.player_->addComponent<PlayerBorder>(Game::renderer_,
+                                                            player_info["collider_info"]["source"],
+                                                            player_info["in_game_scale"],
+                                                            player_info["collider_info"]["animation_info"]["frames"],
+                                                            player_info["collider_info"]["animation_info"]["speed"],
+                                                            player_info["collider_info"]["animated"]);
+    this->game_objects_.player_->addComponent<BoxCollider>(player_info["tag"]).getPushedOn(&this->colliders_);
+    this->game_objects_.player_->getComponent<BoxCollider>()
+        ->setColliderDimension(player_info["collider_info"]["dimensions"]["width"],
+                               player_info["collider_info"]["dimensions"]["height"],
+                               player_info["in_game_scale"]);
 
-    // this->wall_ = this->manager_->addEntity();
-    // this->wall_->addGroup(kmap_group);
-    // this->wall_->addComponent<Transform>(Vector2D(300.0f, 300.0f), 1, 32, 32);
-    // this->wall_->addComponent<Sprite>(Game::renderer_, "Assets/dirt.png");
-	// this->wall_->addComponent<BlockBorder>(Game::renderer_, "Assets/borda_bloco.png");
-    // this->wall_->addComponent<BoxCollider>("wall").getPushedOn(&this->colliders_);
+    this->game_objects_.wall_ = this->manager_->addEntity();
+    this->game_objects_.wall_->addGroup(kmap_group);
+    this->game_objects_.wall_->addComponent<Transform>(Vector2D(300.0f, 300.0f), 1, 32, 32);
+    this->game_objects_.wall_->addComponent<Sprite>(Game::renderer_, "Assets/dirt.png");
+    this->game_objects_.wall_->addComponent<BlockBorder>(Game::renderer_, "Assets/borda_bloco.png");
+    this->game_objects_.wall_->addComponent<BoxCollider>("wall");
+    this->game_objects_.wall_->getComponent<BoxCollider>()
+        ->setColliderBasedOnBorder(this->game_objects_.wall_->getComponent<BlockBorder>())
+        .getPushedOn(&this->colliders_);
 }
 
 void Game::update() {
-    auto player_pos = this->player_->getComponent<Transform>()->getPosition();
+    auto player_pos = this->game_objects_.player_->getComponent<Transform>()->getPosition();
 
     this->manager_->refresh();
     this->manager_->update();
 
-	// std::cout << player_pos;
-
-	auto player_collider = this->player_->getComponent<BoxCollider>();
-    for (auto& collider : this->colliders_) {
-        if (collider->getTag() != "player" &&
-			Collision::AABB(player_collider, collider)) {
-            this->player_->getComponent<Transform>()->setPosition(player_pos);
+    auto player_collider = this->game_objects_.player_->getComponent<BoxCollider>();
+    for (auto &collider : this->colliders_) {
+        if (collider->getTag() != this->game_properties_["player_1_info"]["tag"] &&
+            Collision::AABB(player_collider, collider)) {
+            this->game_objects_.player_->getComponent<Transform>()->setPosition(player_pos);
         }
     }
 }
 
 void Game::render() {
-    auto& tiles(this->manager_->getGroup(kmap_group));
-    auto& players(this->manager_->getGroup(kplayer_group));
-    auto& enemies(this->manager_->getGroup(kenemy_group));
-    
+    auto &tiles(this->manager_->getGroup(kmap_group));
+    auto &players(this->manager_->getGroup(kplayer_group));
+    auto &enemies(this->manager_->getGroup(kenemy_group));
+
     SDL_RenderClear(Game::renderer_);
-    
-    for (auto& tile : tiles) {
+
+    for (auto &tile : tiles) {
         tile->draw();
     }
-    for (auto& player : players) {
+    for (auto &player : players) {
         player->draw();
     }
-    for (auto& enemy : enemies) {
+    for (auto &enemy : enemies) {
         enemy->draw();
     }
 

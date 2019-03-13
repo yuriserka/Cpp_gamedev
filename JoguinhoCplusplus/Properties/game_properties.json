@@ -1,0 +1,36 @@
+{
+    "player_1_info": {
+        "tag": "Player",
+        "in_game_scale": 2,
+        "collider_info": {
+            "animated": true,
+            "source": "Assets/player.collider",
+            "animation_info": {
+                "frames": 8,
+                "speed": 150
+            },
+            "dimensions": {
+                "width": 13,
+                "height": 25
+            }
+        },
+        "sprite_sheet_info": {
+            "source": "Assets/player.character",
+            "animated": true,
+            "idle": {
+                "row": 0,
+                "frames": 8,
+                "speed": 150
+            }
+        }
+    },
+    "map_info": {
+        "lvl_0": {
+            "source": "Assets/lvl_0.map",
+            "sizes": {
+                "x": 16,
+                "y": 16
+            }
+        }
+    }
+}
