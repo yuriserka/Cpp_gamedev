@@ -16,7 +16,7 @@ void Map::loadMap(std::string path, int size_x, int size_y) {
         for (int x = 0; x < size_x; ++x) {
             char char_tileId;
             map_file.get(char_tileId);
-            
+
             this->addTile(x * 32, y * 32, atoi(&char_tileId));
 
             map_file.ignore();

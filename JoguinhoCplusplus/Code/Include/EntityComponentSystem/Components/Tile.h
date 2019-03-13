@@ -8,25 +8,25 @@
 #include "Border.h"
 
 class Tile : public Component {
-
-private:
+  private:
     SDL_Rect tileRect_;
-    SDL_Renderer* renderer_;
+    SDL_Renderer *renderer_;
 
     int id_;
     std::string img_path_;
 
-    Transform* transform_ = nullptr;
-    Sprite* sprite_ = nullptr;
-	BlockBorder* border = nullptr;
+    Transform *transform_ = nullptr;
+    Sprite *sprite_ = nullptr;
+    BlockBorder *border = nullptr;
 
-	enum {
-		kdirt,
-		kwater,
-		kgrass
-	}tile_types;
-public:
-    Tile(SDL_Renderer* renderer, const int& id) {
+    enum {
+        kdirt,
+        kwater,
+        kgrass
+    } tile_types;
+
+  public:
+    Tile(SDL_Renderer *renderer, const int &id) {
         this->renderer_ = renderer;
         this->id_ = id;
 
@@ -38,17 +38,17 @@ public:
             this->img_path_ = "Assets/water.png";
             break;
         case kgrass:
-           this->img_path_ = "Assets/grass.png";
+            this->img_path_ = "Assets/grass.png";
             break;
         default:
-			this->img_path_ = "Assets/tile_test.png";
+            this->img_path_ = "Assets/tile_test.png";
             break;
         }
     }
 
-    Tile(SDL_Renderer* renderer, const int& xpos, const int& ypos,
-         const int& id, const int& width = 32,
-         const int& height = 32) : Tile(renderer, id) {
+    Tile(SDL_Renderer *renderer, const int &xpos, const int &ypos,
+         const int &id, const int &width = 32,
+         const int &height = 32) : Tile(renderer, id) {
         this->setTileRect(xpos, ypos, width, height);
     }
 
@@ -57,7 +57,7 @@ public:
         if (!this->entity_) {
             delete transform_;
             delete sprite_;
-			delete border;
+            delete border;
         }
     }
 
@@ -75,38 +75,37 @@ public:
 
             this->sprite_ = this->entity_->getComponent<Sprite>();
             this->transform_ = this->entity_->getComponent<Transform>();
-		}
-		else {
-			if (!this->sprite_) {
-				this->sprite_ = new Sprite(this->renderer_, this->img_path_);
-			}
-			if (!this->transform_) {
-				this->transform_ = new Transform(static_cast<float>(this->tileRect_.x),
-												 static_cast<float>(this->tileRect_.y),
-												 1, this->tileRect_.h, this->tileRect_.w);
-			}
-		}
+        } else {
+            if (!this->sprite_) {
+                this->sprite_ = new Sprite(this->renderer_, this->img_path_);
+            }
+            if (!this->transform_) {
+                this->transform_ = new Transform(static_cast<float>(this->tileRect_.x),
+                                                 static_cast<float>(this->tileRect_.y),
+                                                 1, this->tileRect_.h, this->tileRect_.w);
+            }
+        }
 
-		if (this->id_ == kdirt) {
-			this->entity_->addComponent<BlockBorder>(this->renderer_, "Assets/tile_test.png");
-			this->border = this->entity_->getComponent<BlockBorder>();
-		}
+        if (this->id_ == kdirt) {
+            this->entity_->addComponent<BlockBorder>(this->renderer_, "Assets/tile_test.png");
+            this->border = this->entity_->getComponent<BlockBorder>();
+        }
 
-		if (this->border) {
-			this->border->getTransform()->setPosition(this->transform_->getPosition());
-		}
+        if (this->border) {
+            this->border->getTransform()->setPosition(this->transform_->getPosition());
+        }
     }
 
     void update() override {
-		return;
+        return;
     }
 
     void draw() override {
         this->sprite_->draw();
     }
 
-    void setTileRect(const int& x, const int& y, const int& w = 32,
-                     const int& h = 32) {
+    void setTileRect(const int &x, const int &y, const int &w = 32,
+                     const int &h = 32) {
         this->tileRect_.x = x;
         this->tileRect_.y = y;
         this->tileRect_.w = w;
@@ -116,5 +115,4 @@ public:
     int getId() const {
         return this->id_;
     }
-
 };

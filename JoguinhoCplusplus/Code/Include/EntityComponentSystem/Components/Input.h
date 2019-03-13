@@ -5,17 +5,17 @@
 #include "../ECS.h"
 
 class Input : public Component {
-
-private:
-    SDL_Event* event_;
+  private:
+    SDL_Event *event_;
 
     Vector2D velocity_ = Vector2D();
 
     float speed_ = 2.0f;
-public:
+
+  public:
     Input() = default;
 
-    Input(SDL_Event* event) {
+    Input(SDL_Event *event) {
         this->setEvent(event);
     }
 
@@ -71,7 +71,7 @@ public:
         return;
     }
 
-    void setEvent(SDL_Event* event) {
+    void setEvent(SDL_Event *event) {
         this->event_ = event;
     }
 
@@ -79,7 +79,7 @@ public:
         return this->speed_;
     }
 
-    Vector2D& getVelocity() {
+    Vector2D &getVelocity() {
         return this->velocity_;
     }
 };

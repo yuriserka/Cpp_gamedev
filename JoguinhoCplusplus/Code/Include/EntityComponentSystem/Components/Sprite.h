@@ -6,15 +6,13 @@
 #include "Transform.h"
 
 class Sprite : public Component {
+  private:
+    SDL_Renderer *renderer_;
+    SDL_Texture *texture_ = nullptr;
 
-private:
-    SDL_Renderer* renderer_;
-    SDL_Texture* texture_ = nullptr;
-    
-    Transform* transform_ = nullptr;
-    
+    Transform *transform_ = nullptr;
+
     std::string path_;
-    bool fit_to_image_;
 
     struct Animation {
         bool animated_;
@@ -27,29 +25,28 @@ private:
             this->speed_ = 100;
         }
 
-        Animation(const int& frames, const int& speed, const bool& animated) {
+        Animation(const int &frames, const int &speed, const bool &animated) {
             this->frames_count_ = frames;
             this->speed_ = speed;
             this->animated_ = animated;
         }
 
     } animation_info_;
-public:
+
+  public:
     Sprite() = default;
 
-    Sprite(SDL_Renderer* renderer) {
+    Sprite(SDL_Renderer *renderer) {
         this->renderer_ = renderer;
     }
 
-    Sprite(SDL_Renderer* renderer, const std::string& imagePath,
-           bool fitToImage = false) : Sprite(renderer) {
+    Sprite(SDL_Renderer *renderer, const std::string &imagePath) : Sprite(renderer) {
         this->setTextureFromImage(imagePath);
-        this->fit_to_image_ = fitToImage;
     }
 
-    Sprite(SDL_Renderer* renderer, const std::string& imagePath,
-           const int& frames, const int& speed,
-           const bool& animated) : Sprite(renderer, imagePath) {
+    Sprite(SDL_Renderer *renderer, const std::string &imagePath,
+           const int &frames, const int &speed,
+           const bool &animated) : Sprite(renderer, imagePath) {
         this->animation_info_ = Animation(frames, speed, animated);
     }
 
@@ -63,19 +60,16 @@ public:
 
     void init() override {
         if (this->entity_) {
+            if (!this->entity_->hasComponent<Transform>()) {
+                this->entity_->addComponent<Transform>();
+            }
             this->transform_ = this->entity_->getComponent<Transform>();
         } else {
             this->transform_ = new Transform();
         }
 
-        if (this->fit_to_image_) {
-            this->transform_->setWidth(this->checkWidth(this->path_));
-            this->transform_->setHeight(this->checkHeight(this->path_));
-        }
-
-        this->transform_->setSrcRect(static_cast<int>(this->transform_->
-                                                      getwidth()),
-                         static_cast<int>(this->transform_->getHeight()));
+        this->transform_->setSrcRect(static_cast<int>(this->transform_->getwidth()),
+                                     static_cast<int>(this->transform_->getHeight()));
 
         this->transform_->setDestRect(this->transform_->getSrcRect()->w,
                                       this->transform_->getSrcRect()->h);
@@ -91,13 +85,11 @@ public:
         }
 
         this->transform_->setDestRect(this->transform_->getScale() *
-                                      this->transform_->getSrcRect()->w,
+                                          this->transform_->getSrcRect()->w,
                                       this->transform_->getScale() *
-                                      this->transform_->getSrcRect()->h,
-                                      static_cast<int>(this->transform_->
-                                                       getPosition().getX()),
-                                      static_cast<int>(this->transform_->
-                                                       getPosition().getY()));
+                                          this->transform_->getSrcRect()->h,
+                                      static_cast<int>(this->transform_->getPosition().getX()),
+                                      static_cast<int>(this->transform_->getPosition().getY()));
     }
 
     void draw() override {
@@ -106,52 +98,21 @@ public:
                        this->transform_->getDestRect());
     }
 
-    void setTextureFromImage(const std::string& imagePath) {
+    void setTextureFromImage(const std::string &imagePath) {
         this->path_ = imagePath;
-        SDL_Surface* surface = IMG_Load(imagePath.c_str());
+        SDL_Surface *surface = IMG_Load(imagePath.c_str());
         if (surface) {
-            std::cout << "surface img para " << imagePath << 
-                " carregada com sucesso\n";
+            std::cout << "surface img para " << imagePath << " carregada com sucesso\n";
             this->texture_ = SDL_CreateTextureFromSurface(this->renderer_,
                                                           surface);
             if (this->texture_) {
-                std::cout << "textura para " << imagePath <<
-                    " criada com sucesso\n";
+                std::cout << "textura para " << imagePath << " criada com sucesso\n";
             }
         }
         SDL_FreeSurface(surface);
     }
 
-    int checkWidth(const std::string& img) {
-        ilInit();
-        ILuint texId = ilGenImage();
-
-        ilBindImage(texId);
-
-        bool success = ilLoadImage(img.c_str());
-        if (!success) {
-            return this->transform_->getwidth();
-        }
-
-        return static_cast<int>(ilGetInteger(IL_IMAGE_WIDTH));
-    }
-
-    int checkHeight(const std::string& img) {
-        ilInit();
-        ILuint texId = ilGenImage();
-
-        ilBindImage(texId);
-
-        bool success = ilLoadImage(img.c_str());
-        if (!success) {
-            return this->transform_->getHeight();
-        }
-
-        return static_cast<int>(ilGetInteger(IL_IMAGE_HEIGHT));
-    }
-
-    Transform* getTransform() {
+    Transform *getTransform() {
         return this->transform_;
     }
-
 };

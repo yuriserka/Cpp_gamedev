@@ -8,15 +8,14 @@
 #include "Border.h"
 
 class BoxCollider : public Component {
-
-private:
+  private:
     SDL_Rect collider_;
     std::string tag_;
-public:
 
+  public:
     BoxCollider() = default;
 
-    BoxCollider(const std::string& tag) {
+    BoxCollider(const std::string &tag) {
         this->tag_ = tag;
     }
 
@@ -26,56 +25,45 @@ public:
 
     void init() override {
         if (this->entity_) {
-            auto entity_transform = this->entity_->getComponent<Transform>();
-            if (this->entity_->hasComponent<Border>()) {
-                auto border_transform = this->entity_->getComponent<Border>()->getTransform();
-                this->setColliderDimension(border_transform->getwidth(),
-                                           border_transform->getHeight(),
-                                           entity_transform->getScale());
-            } else {
-                this->setColliderDimension(entity_transform->getwidth(),
-                                           entity_transform->getHeight(),
-                                           entity_transform->getScale());
+            if (!this->entity_->hasComponent<Transform>()) {
+                this->entity_->addComponent<Transform>();
             }
         }
+        
+        auto entity_transform = this->entity_->getComponent<Transform>();
+        this->setColliderDimension(entity_transform->getwidth(),
+                                   entity_transform->getHeight(),
+                                   entity_transform->getScale());
     }
 
     void update() override {
-		auto entity_position = this->entity_->getComponent<Transform>()->getPosition();
-        if (this->entity_) {
-            if (this->entity_->hasComponent<Border>() && this->tag_ == "player") {
-                auto border = this->entity_->getComponent<Border>();
-                this->collider_.x = (int) border->getTransform()->getPosition().getX();
-                this->collider_.y = (int) border->getTransform()->getPosition().getY();
-            } else {
-                this->collider_.x = static_cast<int>(entity_position.getX());
-                this->collider_.y = static_cast<int>(entity_position.getY());
-            }
-        } 
+        auto entity_position = this->entity_->getComponent<Transform>()->getPosition();
+        this->collider_.x = static_cast<int>(entity_position.getX());
+        this->collider_.y = static_cast<int>(entity_position.getY());
     }
 
     void draw() override {
-		return;
+        return;
     }
 
-    void getPushedOn(std::vector<BoxCollider*>* colliders) {
+    void getPushedOn(std::vector<BoxCollider *> *colliders) {
         colliders->push_back(this);
     }
 
-	BoxCollider& setColliderDimension(const int& w, const int& h, const int& scale = 1) {
-		this->collider_.w = w * scale;
-		this->collider_.h = h * scale;
+    BoxCollider &setColliderDimension(const int &w, const int &h, const int &scale = 1) {
+        this->collider_.w = w * scale;
+        this->collider_.h = h * scale;
 
         return *this;
-	}
+    }
 
-	BoxCollider& setColliderBasedOnBorder(Border* border) {
+    BoxCollider &setColliderBasedOnBorder(Border *border) {
         auto border_transform = border->getTransform();
-		this->collider_.w = border_transform->getwidth() * border_transform->getScale();
-		this->collider_.h = border_transform->getHeight() * border_transform->getScale();
+        this->collider_.w = border_transform->getwidth() * border_transform->getScale();
+        this->collider_.h = border_transform->getHeight() * border_transform->getScale();
 
         return *this;
-	}
+    }
 
     SDL_Rect getCollider() const {
         return this->collider_;
